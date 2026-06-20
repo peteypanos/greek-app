@@ -22,6 +22,7 @@ Stored in `.env` (gitignored). Required:
 ```
 VITE_SUPABASE_URL=...
 VITE_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...   # server-side only — used by seed script, never exposed to the browser
 ```
 
 On Vercel these are set via `vercel env add` and are scoped to Production and Development environments.
@@ -37,6 +38,13 @@ Five tables:
 | `vocabulary` | id, lesson_id, word, pronunciation, part_of_speech, translation, example_sentence, example_translation |
 | `exercises` | id, lesson_id, question, correct_answer, hint_text, display_order |
 | `passages` | id, lesson_id, passage_title, greek_text, english_translation, annotation_note |
+
+**Current lesson count: 25**
+- 17 lessons at B2/C1 level (original set)
+- 8 lessons at A1/A2 level (seeded via `supabase/seed.js`):
+  Greetings and Introductions (A1), Numbers 1–20 (A1), Days and Months (A1), Colors and Adjectives (A1), Family Members (A1), Food and Drink (A2), Basic Verbs: To Be/Have/Want (A1), Asking for Directions (A2)
+
+**Seeding:** `node --env-file=.env supabase/seed.js` — requires `SUPABASE_SERVICE_ROLE_KEY` in `.env` (not the anon key).
 
 ## UI Design
 
@@ -56,7 +64,7 @@ Five tables:
 
 **Typography:** `font-serif` (Georgia) on all Greek text fields (`greek_text`, `greek_title`, app title). UI elements stay sans-serif.
 
-**Lesson navigation:** single `<select>` dropdown for all screen sizes (no pill buttons). "Surprise me" is the first option.
+**Lesson navigation:** level filter buttons (All / A1 / A2 / B2 / C1) above a `<select>` dropdown. Filtering a level narrows the dropdown and clears the active lesson. "Surprise me" is the first dropdown option and respects the active filter.
 
 **Exercises layout:**
 - Text input on its own full-width row
