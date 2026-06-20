@@ -43,7 +43,7 @@ export default function App() {
     setLoading(false)
   }
 
-  const LEVELS = ['All', 'A1', 'A2', 'B2', 'C1']
+  const LEVELS = ['All', 'A1', 'A2', 'B1', 'B2', 'C1']
   const filteredLessons = activeLevel === 'All'
     ? lessons
     : lessons.filter(l => l.level === activeLevel)
