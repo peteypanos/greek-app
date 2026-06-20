@@ -13,6 +13,7 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [showTranslation, setShowTranslation] = useState({})
   const [shownAnswers, setShownAnswers] = useState({})
+  const [activeLevel, setActiveLevel] = useState('All')
 
   useEffect(() => {
     supabase
@@ -42,9 +43,14 @@ export default function App() {
     setLoading(false)
   }
 
+  const LEVELS = ['All', 'A1', 'A2', 'B2', 'C1']
+  const filteredLessons = activeLevel === 'All'
+    ? lessons
+    : lessons.filter(l => l.level === activeLevel)
+
   function surpriseMe() {
-    if (!lessons.length) return
-    const pick = lessons[Math.floor(Math.random() * lessons.length)]
+    if (!filteredLessons.length) return
+    const pick = filteredLessons[Math.floor(Math.random() * filteredLessons.length)]
     selectLesson(pick)
   }
 
@@ -72,6 +78,21 @@ export default function App() {
       {/* Topic bar */}
       <div className="sticky top-0 z-10 bg-[#FDFAF6] border-b border-[#E8DDD0] shadow-sm">
         <div className="max-w-3xl mx-auto px-4 py-3">
+          <div className="flex gap-1.5 mb-2">
+            {LEVELS.map(level => (
+              <button
+                key={level}
+                onClick={() => { setActiveLevel(level); setSelected(null) }}
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                  activeLevel === level
+                    ? 'bg-[#C4613A] text-white'
+                    : 'bg-[#F0EAE0] text-[#5C4A3A] hover:bg-[#E8DDD0]'
+                }`}
+              >
+                {level}
+              </button>
+            ))}
+          </div>
           <select
             className="w-full border border-[#D4C5B0] rounded-lg px-3 py-2 text-sm text-[#5C4A3A] bg-[#FFFCF8] outline-none focus:border-[#C4613A]"
             value={selected?.id ?? ''}
@@ -83,7 +104,7 @@ export default function App() {
           >
             <option value="" disabled>Pick a lesson…</option>
             <option value="__surprise__">✦ Surprise me</option>
-            {lessons.map(l => (
+            {filteredLessons.map(l => (
               <option key={l.id} value={l.id}>{l.title}</option>
             ))}
           </select>
