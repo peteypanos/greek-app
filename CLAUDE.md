@@ -39,12 +39,24 @@ Five tables:
 | `exercises` | id, lesson_id, question, correct_answer, hint_text, display_order |
 | `passages` | id, lesson_id, passage_title, greek_text, english_translation, annotation_note |
 
-**Current lesson count: 25**
-- 17 lessons at B2/C1 level (original set)
-- 8 lessons at A1/A2 level (seeded via `supabase/seed.js`):
-  Greetings and Introductions (A1), Numbers 1–20 (A1), Days and Months (A1), Colors and Adjectives (A1), Family Members (A1), Food and Drink (A2), Basic Verbs: To Be/Have/Want (A1), Asking for Directions (A2)
+**Current lesson count: 37** across 5 levels:
 
-**Seeding:** `node --env-file=.env supabase/seed.js` — requires `SUPABASE_SERVICE_ROLE_KEY` in `.env` (not the anon key).
+| Level | Count | Notes |
+|-------|-------|-------|
+| A1 | 6 | Greetings, Numbers 1–20, Days & Months, Colors, Family, Basic Verbs |
+| A2 | 6 | Food & Drink, Asking for Directions, Telling the Time, At the Café, My Home, Getting Around the City |
+| B1 | 8 | Past Tense, Daily Routines, Shopping, Health, Travel, Work, Hobbies, Weather |
+| B2 | 8 | Includes original advanced lessons + Aspect and Clitic Pronouns (reassigned from B2–C1) |
+| C1 | 9 | Includes original advanced lessons + Diminutives and Conditionals (reassigned from B2–C1) |
+
+Note: the original set had 4 lessons incorrectly tagged `B2–C1` — these have been reassigned to either B2 or C1.
+
+**Seed scripts:**
+- `node --env-file=.env supabase/seed.js` — A1/A2 beginner lessons (original 8)
+- `node --env-file=.env supabase/seed-b1.js` — 8 B1 intermediate lessons
+- `node --env-file=.env supabase/seed-a2.js` — 4 additional A2 lessons
+
+All require `SUPABASE_SERVICE_ROLE_KEY` in `.env` (not the anon key). Do not re-run — inserts are not idempotent and will create duplicates.
 
 ## UI Design
 
@@ -64,7 +76,7 @@ Five tables:
 
 **Typography:** `font-serif` (Georgia) on all Greek text fields (`greek_text`, `greek_title`, app title). UI elements stay sans-serif.
 
-**Lesson navigation:** level filter buttons (All / A1 / A2 / B2 / C1) above a `<select>` dropdown. Filtering a level narrows the dropdown and clears the active lesson. "Surprise me" is the first dropdown option and respects the active filter.
+**Lesson navigation:** level filter buttons (All / A1 / A2 / B1 / B2 / C1) above a `<select>` dropdown. Filtering a level narrows the dropdown and clears the active lesson. "Surprise me" is the first dropdown option and respects the active filter.
 
 **Exercises layout:**
 - Text input on its own full-width row
