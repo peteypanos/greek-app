@@ -11,6 +11,7 @@ Greek language learning app.
 ## Dev
 
 ```bash
+cd ~/apps/greek-app
 npm run dev      # http://localhost:5173 (or next available port)
 npm run build
 ```
@@ -120,6 +121,10 @@ All require `SUPABASE_SERVICE_ROLE_KEY` in `.env` (not the anon key). Do not re-
 - Text input on its own full-width row
 - Check + Show Answer buttons on a row below
 - Questions with an English translation in parentheses (e.g. `Πώς είσαι; (How are you?)`) have the parenthetical split onto a second line in muted color
+
+## Local path
+
+Project lives at `~/apps/greek-app` (moved from `~/greek-app` June 2026).
 
 ## Deployment
 
