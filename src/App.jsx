@@ -64,10 +64,12 @@ export default function App() {
     selectLesson(pick)
   }
 
+  function normalize(str) {
+    return str.trim().toLowerCase().replace(/[.?!]+$/, '')
+  }
+
   function checkAnswer(ex) {
-    const correct =
-      (answers[ex.id] ?? '').trim().toLowerCase() ===
-      ex.correct_answer.trim().toLowerCase()
+    const correct = normalize(answers[ex.id] ?? '') === normalize(ex.correct_answer)
     setResults(r => ({ ...r, [ex.id]: correct }))
   }
 
