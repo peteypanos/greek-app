@@ -15,21 +15,37 @@ npm run dev      # http://localhost:5173 (or next available port)
 npm run build
 ```
 
+## Supabase project
+
+**Project:** greek-daily-lesson
+**URL:** https://coulibnaqqmdiwbexzdi.supabase.co
+
 ## Environment variables
 
 Stored in `.env` (gitignored). Required:
 
 ```
-VITE_SUPABASE_URL=...
+VITE_SUPABASE_URL=https://coulibnaqqmdiwbexzdi.supabase.co
 VITE_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...   # server-side only — used by seed script, never exposed to the browser
 ```
 
 On Vercel these are set via `vercel env add` and are scoped to Production and Development environments.
 
+## Authentication
+
+Magic link auth via Supabase Auth (`supabase.auth.signInWithOtp`). Unauthenticated users see a branded login screen. On login, a magic link is emailed; clicking it redirects back to the app.
+
+- **Redirect URLs** (set in Supabase → Authentication → URL Configuration):
+  - `http://localhost:5173`
+  - `https://greek-app-chi.vercel.app`
+- Session is persisted by Supabase automatically (no extra handling needed)
+- Sign out button in the header calls `supabase.auth.signOut()`
+- Lessons and progress are only fetched after auth (`useEffect([user])`)
+
 ## Database (Supabase)
 
-Five tables:
+Six tables:
 
 | Table | Key columns |
 |-------|-------------|
@@ -38,6 +54,18 @@ Five tables:
 | `vocabulary` | id, lesson_id, word, pronunciation, part_of_speech, translation, example_sentence, example_translation |
 | `exercises` | id, lesson_id, question, correct_answer, hint_text, display_order |
 | `passages` | id, lesson_id, passage_title, greek_text, english_translation, annotation_note |
+| `lesson_progress` | id (uuid), user_id (uuid → auth.users), lesson_id (uuid → lessons), completed_at (timestamptz) |
+
+`lesson_progress` has RLS enabled. Required policies (add in Supabase SQL editor if not present):
+```sql
+create policy "Users can view own progress"
+  on lesson_progress for select using (user_id = auth.uid());
+
+create policy "Users can insert own progress"
+  on lesson_progress for insert with check (user_id = auth.uid());
+```
+
+A lesson is marked complete when the user has clicked Check or Show Answer on every exercise. Completed lessons show a `✓` prefix in the dropdown and a green "✓ Completed" badge in the lesson header. Progress persists across sessions.
 
 **Current lesson count: 37** across 5 levels:
 
