@@ -14,6 +14,7 @@ export default function App() {
   const [showTranslation, setShowTranslation] = useState({})
   const [shownAnswers, setShownAnswers] = useState({})
   const [activeLevel, setActiveLevel] = useState('All')
+  const [isDailyLesson, setIsDailyLesson] = useState(false)
   const contentRef = useRef(null)
 
   useEffect(() => {
@@ -21,7 +22,14 @@ export default function App() {
       .from('lessons')
       .select('id, title, greek_title, level')
       .order('created_at')
-      .then(({ data }) => setLessons(data ?? []))
+      .then(({ data }) => {
+        const loaded = data ?? []
+        setLessons(loaded)
+        if (loaded.length) {
+          const dayIndex = Math.floor(Date.now() / 86400000)
+          selectLesson(loaded[dayIndex % loaded.length], true)
+        }
+      })
   }, [])
 
   useEffect(() => {
@@ -30,8 +38,9 @@ export default function App() {
     }
   }, [loading, selected])
 
-  async function selectLesson(lesson) {
+  async function selectLesson(lesson, isDaily = false) {
     setSelected(lesson)
+    setIsDailyLesson(isDaily)
     setLoading(true)
     setAnswers({})
     setResults({})
@@ -89,7 +98,7 @@ export default function App() {
             {LEVELS.map(level => (
               <button
                 key={level}
-                onClick={() => { setActiveLevel(level); setSelected(null) }}
+                onClick={() => { setActiveLevel(level); setSelected(null); setIsDailyLesson(false) }}
                 className={`px-4 py-2.5 sm:px-3 sm:py-1 rounded-full text-xs font-semibold transition-colors ${
                   activeLevel === level
                     ? 'bg-[#C4613A] text-white'
@@ -138,6 +147,9 @@ export default function App() {
             <div>
               <div className="flex items-start justify-between gap-4">
                 <div>
+                  {isDailyLesson && (
+                    <p className="text-xs font-semibold text-[#C4613A] uppercase tracking-widest mb-1">☀ Today's Lesson</p>
+                  )}
                   <h1 className="text-2xl font-bold text-[#2C1810]">{selected.title}</h1>
                   {selected.greek_title && (
                     <p className="text-lg font-serif text-[#C4613A] mt-0.5">{selected.greek_title}</p>
