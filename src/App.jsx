@@ -15,21 +15,51 @@ export default function App() {
   const [shownAnswers, setShownAnswers] = useState({})
   const [activeLevel, setActiveLevel] = useState('All')
   const [isDailyLesson, setIsDailyLesson] = useState(false)
+  const [completedLessons, setCompletedLessons] = useState(new Set())
+  const [user, setUser] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [email, setEmail] = useState('')
+  const [emailSent, setEmailSent] = useState(false)
 
   useEffect(() => {
-    supabase
-      .from('lessons')
-      .select('id, title, greek_title, level')
-      .order('created_at')
-      .then(({ data }) => {
-        const loaded = data ?? []
-        setLessons(loaded)
-        if (loaded.length) {
-          const dayIndex = Math.floor(Date.now() / 86400000)
-          selectLesson(loaded[dayIndex % loaded.length], true)
-        }
-      })
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+      setAuthLoading(false)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+    return () => subscription.unsubscribe()
   }, [])
+
+  useEffect(() => {
+    if (!user) return
+    Promise.all([
+      supabase.from('lessons').select('id, title, greek_title, level').order('created_at'),
+      supabase.from('lesson_progress').select('lesson_id'),
+    ]).then(([lessonsRes, progressRes]) => {
+      const loaded = lessonsRes.data ?? []
+      setLessons(loaded)
+      setCompletedLessons(new Set(progressRes.data?.map(p => p.lesson_id) ?? []))
+      if (loaded.length) {
+        const dayIndex = Math.floor(Date.now() / 86400000)
+        selectLesson(loaded[dayIndex % loaded.length], true)
+      }
+    })
+  }, [user])
+
+  useEffect(() => {
+    if (!exercises.length || !selected || !user || completedLessons.has(selected.id)) return
+    const allTouched = exercises.every(ex =>
+      results[ex.id] !== undefined || shownAnswers[ex.id]
+    )
+    if (!allTouched) return
+    supabase.from('lesson_progress')
+      .insert({ user_id: user.id, lesson_id: selected.id })
+      .then(({ error }) => {
+        if (!error) setCompletedLessons(prev => new Set([...prev, selected.id]))
+      })
+  }, [results, shownAnswers, exercises, selected, user, completedLessons])
 
 
   async function selectLesson(lesson, isDaily = false) {
@@ -77,11 +107,65 @@ export default function App() {
     setShowTranslation(t => ({ ...t, [id]: !t[id] }))
   }
 
+  async function signIn(e) {
+    e.preventDefault()
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin },
+    })
+    if (!error) setEmailSent(true)
+  }
+
+  async function signOut() {
+    await supabase.auth.signOut()
+  }
+
+  if (authLoading) return (
+    <div className="min-h-screen bg-[#FDFAF6] flex items-center justify-center">
+      <div className="w-8 h-8 rounded-full border-2 border-[#E8DDD0] border-t-[#C4613A] animate-spin" />
+    </div>
+  )
+
+  if (!user) return (
+    <div className="min-h-screen bg-[#FDFAF6] header-meander flex flex-col items-center justify-center px-4">
+      <h1 className="text-3xl font-bold font-serif tracking-tight text-[#2C1810] mb-1">Ελληνικά Κάθε Μέρα</h1>
+      <p className="mt-1 text-sm font-medium text-[#C4613A] uppercase tracking-widest mb-10">Daily Greek</p>
+      {emailSent ? (
+        <p className="text-[#5C4A3A] text-center max-w-xs">
+          Check your email for a magic link to sign in.
+        </p>
+      ) : (
+        <form onSubmit={signIn} className="w-full max-w-sm flex flex-col gap-3">
+          <input
+            type="email"
+            required
+            placeholder="your@email.com"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            className="w-full border border-[#D4C5B0] rounded-lg px-3 py-2 text-sm text-[#5C4A3A] bg-[#FFFCF8] outline-none focus:border-[#C4613A]"
+          />
+          <button
+            type="submit"
+            className="w-full py-2 bg-[#C4613A] text-white text-sm font-medium rounded-lg hover:bg-[#A8522F] transition-colors"
+          >
+            Send magic link
+          </button>
+        </form>
+      )}
+    </div>
+  )
+
   return (
     <div className="min-h-screen bg-[#FDFAF6]">
       {/* Header */}
       <div className="header-meander bg-[#FDFAF6] border-b border-[#E8DDD0]">
-        <div className="max-w-3xl mx-auto px-4 pt-8 pb-6 text-center">
+        <div className="max-w-3xl mx-auto px-4 pt-8 pb-6 text-center relative">
+          <button
+            onClick={signOut}
+            className="absolute top-0 right-0 text-xs text-[#8B7355] hover:text-[#5C4A3A] transition-colors"
+          >
+            Sign out
+          </button>
           <h1 className="text-3xl font-bold font-serif tracking-tight text-[#2C1810]">Ελληνικά Κάθε Μέρα</h1>
           <p className="mt-1 text-sm font-medium text-[#C4613A] uppercase tracking-widest">Daily Greek</p>
         </div>
@@ -117,7 +201,7 @@ export default function App() {
             <option value="" disabled>Pick a lesson…</option>
             <option value="__surprise__">✦ Surprise me</option>
             {filteredLessons.map(l => (
-              <option key={l.id} value={l.id}>{l.title}</option>
+              <option key={l.id} value={l.id}>{completedLessons.has(l.id) ? '✓ ' : ''}{l.title}</option>
             ))}
           </select>
         </div>
@@ -151,11 +235,18 @@ export default function App() {
                     <p className="text-lg font-serif text-[#C4613A] mt-0.5">{selected.greek_title}</p>
                   )}
                 </div>
-                {selected.level && (
-                  <span className="shrink-0 px-3 py-1.5 rounded-full text-sm font-bold bg-[#F0E4D8] text-[#C4613A] border border-[#E8C9B0]">
-                    {selected.level}
-                  </span>
-                )}
+                <div className="flex items-center gap-2 shrink-0">
+                  {completedLessons.has(selected.id) && (
+                    <span className="px-3 py-1.5 rounded-full text-sm font-bold bg-[#E8F5E9] text-green-700 border border-green-200">
+                      ✓ Completed
+                    </span>
+                  )}
+                  {selected.level && (
+                    <span className="px-3 py-1.5 rounded-full text-sm font-bold bg-[#F0E4D8] text-[#C4613A] border border-[#E8C9B0]">
+                      {selected.level}
+                    </span>
+                  )}
+                </div>
               </div>
               {selected.focus && (
                 <p className="mt-3 text-[#5C4A3A] text-sm">{selected.focus}</p>
