@@ -84,9 +84,9 @@ All require `SUPABASE_SERVICE_ROLE_KEY` in `.env` (not the anon key). Do not re-
 
 **Mobile:** level filter buttons use larger touch targets on mobile (`py-2.5`) and compact sizing on desktop (`sm:py-1`). Dropdown font is `text-xs` on mobile, `text-sm` on desktop.
 
-**Loading:** selecting a lesson shows an animated terracotta spinner (`animate-spin`, border-based circle) while content is fetched from Supabase.
+**Daily lesson:** on app load, a lesson is auto-selected based on today's date (`Math.floor(Date.now() / 86400000) % lessons.length`). This cycles through all lessons, showing a different one each day. A "☀ Today's Lesson" label appears above the lesson title when the daily auto-select is active. Manually picking a lesson or using Surprise me clears the label. Changing the level filter also clears it.
 
-**Smooth scroll:** after lesson content loads, the page automatically scrolls to the content area (`scrollIntoView({ behavior: 'smooth' })` via a `useEffect` on `[loading, selected]`).
+**Loading:** selecting a lesson shows an animated terracotta spinner (`animate-spin`, border-based circle) while content is fetched from Supabase.
 
 **Exercises layout:**
 - Text input on its own full-width row
