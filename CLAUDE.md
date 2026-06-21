@@ -78,6 +78,16 @@ All require `SUPABASE_SERVICE_ROLE_KEY` in `.env` (not the anon key). Do not re-
 
 **Lesson navigation:** level filter buttons (All / A1 / A2 / B1 / B2 / C1) above a `<select>` dropdown. Filtering a level narrows the dropdown and clears the active lesson. "Surprise me" is the first dropdown option and respects the active filter.
 
+**Header:** features a faint repeating Greek key/meander pattern via `.header-meander` CSS class in `src/index.css` — terracotta stroke at ~13% opacity on the cream background.
+
+**Level badge:** displayed prominently in the lesson header — `text-sm font-bold`, larger pill (`px-3 py-1.5`), darker cream fill (`#F0E4D8`).
+
+**Mobile:** level filter buttons use larger touch targets on mobile (`py-2.5`) and compact sizing on desktop (`sm:py-1`). Dropdown font is `text-xs` on mobile, `text-sm` on desktop.
+
+**Loading:** selecting a lesson shows an animated terracotta spinner (`animate-spin`, border-based circle) while content is fetched from Supabase.
+
+**Smooth scroll:** after lesson content loads, the page automatically scrolls to the content area (`scrollIntoView({ behavior: 'smooth' })` via a `useEffect` on `[loading, selected]`).
+
 **Exercises layout:**
 - Text input on its own full-width row
 - Check + Show Answer buttons on a row below
