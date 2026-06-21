@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from './lib/supabase'
 
 export default function App() {
@@ -14,6 +14,7 @@ export default function App() {
   const [showTranslation, setShowTranslation] = useState({})
   const [shownAnswers, setShownAnswers] = useState({})
   const [activeLevel, setActiveLevel] = useState('All')
+  const contentRef = useRef(null)
 
   useEffect(() => {
     supabase
@@ -22,6 +23,12 @@ export default function App() {
       .order('created_at')
       .then(({ data }) => setLessons(data ?? []))
   }, [])
+
+  useEffect(() => {
+    if (!loading && selected) {
+      contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [loading, selected])
 
   async function selectLesson(lesson) {
     setSelected(lesson)
@@ -68,7 +75,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#FDFAF6]">
       {/* Header */}
-      <div className="bg-[#FDFAF6] border-b border-[#E8DDD0]">
+      <div className="header-meander bg-[#FDFAF6] border-b border-[#E8DDD0]">
         <div className="max-w-3xl mx-auto px-4 pt-8 pb-6 text-center">
           <h1 className="text-3xl font-bold font-serif tracking-tight text-[#2C1810]">Ελληνικά Κάθε Μέρα</h1>
           <p className="mt-1 text-sm font-medium text-[#C4613A] uppercase tracking-widest">Daily Greek</p>
@@ -83,7 +90,7 @@ export default function App() {
               <button
                 key={level}
                 onClick={() => { setActiveLevel(level); setSelected(null) }}
-                className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                className={`px-4 py-2.5 sm:px-3 sm:py-1 rounded-full text-xs font-semibold transition-colors ${
                   activeLevel === level
                     ? 'bg-[#C4613A] text-white'
                     : 'bg-[#F0EAE0] text-[#5C4A3A] hover:bg-[#E8DDD0]'
@@ -94,7 +101,7 @@ export default function App() {
             ))}
           </div>
           <select
-            className="w-full border border-[#D4C5B0] rounded-lg px-3 py-2 text-sm text-[#5C4A3A] bg-[#FFFCF8] outline-none focus:border-[#C4613A]"
+            className="w-full border border-[#D4C5B0] rounded-lg px-3 py-2 text-xs sm:text-sm text-[#5C4A3A] bg-[#FFFCF8] outline-none focus:border-[#C4613A]"
             value={selected?.id ?? ''}
             onChange={e => {
               if (e.target.value === '__surprise__') { surpriseMe(); return }
@@ -111,7 +118,7 @@ export default function App() {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      <div ref={contentRef} className="max-w-3xl mx-auto px-4 py-8">
         {!selected && (
           <p className="text-[#8B7355] text-center mt-24 text-lg">
             Pick a lesson above or hit <span className="text-[#C4613A] font-medium">Surprise me</span>
@@ -119,7 +126,10 @@ export default function App() {
         )}
 
         {selected && loading && (
-          <p className="text-[#8B7355] text-center mt-24">Loading…</p>
+          <div className="flex flex-col items-center gap-3 mt-24">
+            <div className="w-8 h-8 rounded-full border-2 border-[#E8DDD0] border-t-[#C4613A] animate-spin" />
+            <p className="text-[#8B7355] text-sm">Loading…</p>
+          </div>
         )}
 
         {selected && !loading && (
@@ -134,7 +144,7 @@ export default function App() {
                   )}
                 </div>
                 {selected.level && (
-                  <span className="shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#F5EDE4] text-[#C4613A] border border-[#E8C9B0]">
+                  <span className="shrink-0 px-3 py-1.5 rounded-full text-sm font-bold bg-[#F0E4D8] text-[#C4613A] border border-[#E8C9B0]">
                     {selected.level}
                   </span>
                 )}
