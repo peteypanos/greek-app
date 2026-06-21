@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from './lib/supabase'
 
 export default function App() {
@@ -15,7 +15,6 @@ export default function App() {
   const [shownAnswers, setShownAnswers] = useState({})
   const [activeLevel, setActiveLevel] = useState('All')
   const [isDailyLesson, setIsDailyLesson] = useState(false)
-  const contentRef = useRef(null)
 
   useEffect(() => {
     supabase
@@ -32,11 +31,6 @@ export default function App() {
       })
   }, [])
 
-  useEffect(() => {
-    if (!loading && selected) {
-      contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  }, [loading, selected])
 
   async function selectLesson(lesson, isDaily = false) {
     setSelected(lesson)
@@ -127,7 +121,7 @@ export default function App() {
         </div>
       </div>
 
-      <div ref={contentRef} className="max-w-3xl mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto px-4 py-8">
         {!selected && (
           <p className="text-[#8B7355] text-center mt-24 text-lg">
             Pick a lesson above or hit <span className="text-[#C4613A] font-medium">Surprise me</span>
